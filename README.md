@@ -12,9 +12,9 @@ conda env create -f env.yml
 Before running inference, please download:
 
 1. our pretrained model from this [link](https://drive.google.com/file/d/1TvuTHtJQt8oTbLUiZ4_-mdORanDRlB-j/view?usp=share_link) 
-2. centered lighting real dataset with MaterialGAN and ours without ground truth [link](https://drive.google.com/file/d/1eggbsN5adCxBgiSzPyBXL0jBWv8aOEdR/view?usp=share_link)
+2. scaled real dataset with MaterialGAN and our dataset with ground truth [link](https://drive.google.com/file/d/1eggbsN5adCxBgiSzPyBXL0jBWv8aOEdR/view?usp=share_link)
 
-please save the download model to `./ckpt/' and extract data to the root path:
+please save the download model to `./ckpt/' and extract data to './dataset':
 
 To run inference on our and MaterialGAN's dataset with ground truth, please use this command:
 
@@ -34,6 +34,6 @@ python meta_test.py --val_root $path ---fea all_N1 --wN_outer 80 --gamma --cuda 
 
 where `$path` point to the directory of test real images, `$name` is the saved path
 
-We also provide higher resolution version of captured real scenes without centered lighting: [link](https://drive.google.com/file/d/1kzJicyd9Dn-cGNWJCDqJ4fuh5b_NDajW/view?usp=share_link)
+We also provide higher resolution version of unscaled real scenes: [link](https://drive.google.com/file/d/1kzJicyd9Dn-cGNWJCDqJ4fuh5b_NDajW/view?usp=share_link)
 
 This code is not cleaned version, will clean it up soon. feel free to email me if you have any questions: 1992zhouxilong@gmail.com. Thanks for your understanding!

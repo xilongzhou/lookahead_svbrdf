@@ -29,7 +29,7 @@ python meta_test.py --fea all_N1 --wN_outer 80 --gamma --cuda --test_img $mode -
 
 where `$mode` set as `OurReal2` for our test dataset and `MGReal2` for MaterialGAN dataset, `$name` will be saved path
 
-To run inference on real captured dataset without ground truth, please first centeralized the specular highlight and then run this command:
+To run inference on real captured dataset without ground truth, please first centeralized the specular highlight of input image and then run this command:
 
 ```
 python meta_test.py --val_root $path ---fea all_N1 --wN_outer 80 --gamma --cuda --test_img Real --name $name --val_step 7 --wR_outer 5 --loss_after1 TD --Wfea_vgg 5e-2 --Wdren_outer 10 --WTDren_outer 10 --adjust_light

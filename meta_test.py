@@ -133,9 +133,6 @@ def test(opt, model, coords, val_data, device, FeaExtractor=None):
 	LightPos = torch.tensor([[0,0,4]], device=device)
 	Position_map=PositionMap(opt.res,opt.res,3).to(device)
 
-	# resize = transforms.Resize((opt.res,opt.res))
-	# resize = transforms.Compose([transforms.ToPILImage(), transforms.Resize((opt.res,opt.res)), transforms.ToTensor()])
-	# FeaExtractNet.set_gradient(False)
 	if opt.netloss=='Des19Net':
 		criterionNet.set_gradient(False)
 
@@ -187,7 +184,6 @@ def test(opt, model, coords, val_data, device, FeaExtractor=None):
 		temp = torch.exp(tensor*(np.log(1.01)-np.log(0.01)) + np.log(0.01))-0.01
 
 		return temp**(1/2.2)
-		# return  (tf.log(tf.add(tensor,0.01)) - tf.log(0.01)) / (tf.log(1.01)-tf.log(0.01))
 
 
 	if opt.test_img=='SynPlot':
@@ -201,14 +197,6 @@ def test(opt, model, coords, val_data, device, FeaExtractor=None):
 
 	for img_id, val_example in enumerate(val_data):
 
-		# if opt.demo:
-		# 	LightPos = NLight_VaryH(1, 0.03, device)
-
-		# if img_id > 20:
-		# if img_id > 40 or img_id<=20:
-		# if img_id > 60 or img_id<=40:
-		# if img_id <= 60:
-		# 	continue
 
 		val_example, name=val_example
 	
@@ -942,29 +930,11 @@ def output_ff(opt, model, coords, val_data, device, FeaExtractor=None):
 
 def test_real(opt, model, coords, device, FeaExtractor=None):
 
-	# if opt.test_img=='OurReal':
-	# 	realdata_path='../MG2/data/out_tmp/my_egsr1'
-	# 	light_path='../Dataset/Light/MyReal9_Total'
-	# elif opt.test_img=='OurReal2':
-	# 	# light_path = '../Dataset/Light/OurReal9'
-	# 	realdata_path = "../Dataset/Center_RealData/OurRealData/OurRealData_temp"
-	# 	in_path = "../Dataset/Center_RealData/OurRealData/OurRealData_in"
-	# elif opt.test_img=='MGReal':
-	# 	realdata_path='../Dataset/MGRealData_All9'
-	# 	light_path='../Dataset/Light/MGReal9'
-	# 	in_path = realdata_path
-	# elif opt.test_img=='MGReal2':
-	# 	# light_path = '../Dataset/Light/MGReal9'
-	# 	realdata_path = "../Dataset/Center_RealData/MGRealData/MGRealData_temp"
-	# 	in_path = "../Dataset/Center_RealData/MGRealData/MGRealData_in_select"
-
 
 	if opt.test_img=='OurReal2':
 		realdata_path = "./dataset/OurReal/OurRealData_scaled"
-		# in_path = "./dataset/OurReal/OurRealData_in"
 	elif opt.test_img=='MGReal2':
 		realdata_path = "./dataset/MGReal/MGRealData_scaled"
-		# in_path = "./dataset/MGReal/MGRealData_in_select"
 
 	load_model='pretrain' if opt.load_pretrain else opt.model
 
@@ -980,9 +950,6 @@ def test_real(opt, model, coords, device, FeaExtractor=None):
 	scene_N = 0
 	TotalRMSE_ren = 0
 	TotalLPIPS_ren = 0
-
-	print(len(scenes))
-
 
 	if opt.loss_after1=='TD':
 		criterionTD = TDLoss_2(device, 0)
@@ -1060,10 +1027,6 @@ def test_real(opt, model, coords, device, FeaExtractor=None):
 		#################################### load Light ##############################################
 		## load all 7 lights && get first No_Input lights
 		LightPos=torch.from_numpy(load_light_txt(os.path.join(realdata_path,f'{scene}/camera_pos.txt'))).to(device).float()
-		# if opt.test_img=='OurReal2':
-		# 	LightPos=torch.from_numpy(load_light_txt(os.path.join(realdata_path,f'{scene}/camera_pos.txt'))).to(device).float()
-		# else:
-		# 	LightPos=torch.from_numpy(load_light_txt(os.path.join(light_path,'{}.txt'.format(scene)))).to(device).float()
 
 		### reorganize train & test light pos
 		LightPos_train = LightPos[:opt.N_input,:]
@@ -1292,21 +1255,6 @@ def test_real(opt, model, coords, device, FeaExtractor=None):
 
 
 
-# def save_args(opt):
-# 	args = vars(opt)
-# 	save_opt_path = f'Siren/{opt.resume_name}/test/{opt.name}'
-# 	if not os.path.exists(save_opt_path):         
-# 		os.makedirs(save_opt_path)
-# 	file_name = os.path.join(save_opt_path, 'opt.txt')
-# 	with open(file_name, 'wt') as opt_file:
-# 		opt_file.write('------------ Options -------------\n')
-# 		for k, v in sorted(args.items()):
-# 			opt_file.write('%s: %s\n' % (str(k), str(v)))
-# 		opt_file.write('-------------- End ----------------\n')
-# 	return 
-
-
-
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser()
@@ -1448,6 +1396,9 @@ if __name__ == "__main__":
 		print(model)
 		print('output nc:', out_nc)
 
+		nparams = sum(p.numel() for p in model.parameters() if p.requires_grad)
+		print('Number of learnable parameters: %d' %(nparams))
+
 		if opt.test_img=='Syn' or opt.test_img=='Real':
 			Myval_set = DataLoaderHelper_test(myvaldata_root, opt)
 			Myval_data = DataLoader(dataset=Myval_set, batch_size=1, num_workers=0, shuffle=False, drop_last=False)
@@ -1460,7 +1411,7 @@ if __name__ == "__main__":
 			Myval_data = DataLoader(dataset=Myval_set, batch_size=1, num_workers=0, shuffle=False, drop_last=False)
 
 			test(opt, model, coords, Myval_data, device, FeaExtractNet)
-		elif opt.test_img=='MGReal2' or opt.test_img=='MGReal' or opt.test_img=='OurReal' or opt.test_img=='OurReal2':
+		elif opt.test_img=='MGReal2' or opt.test_img=='OurReal2':
 			test_real(opt, model, coords, device, FeaExtractNet)
 			# output_video(opt, model, coords, device, FeaExtractNet)
 

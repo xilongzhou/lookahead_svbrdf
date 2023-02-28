@@ -178,7 +178,6 @@ class FeatureExtractor(nn.Module):
 					x = self.LeakyReLU(self.deconvs[i](temp))
 			return x
 
-
 # con-siren network
 class ConSirenNet(MetaModule):
 	def __init__(self, opt, dim_in, dim_hidden, dim_out, num_layers, fea_c=32, w0 = 1., w0_initial = 30., use_bias = True, final_activation = None, cond_type='conv', N_in=1, n_layer_unet=3, test=False):
@@ -339,7 +338,6 @@ class ConSirenNet(MetaModule):
 
 		return x
 
-
 class MetaConv(MetaModule):
 	def __init__(self,in_c, out_c, ksize=4, s=2, p=1):
 		super().__init__()
@@ -359,7 +357,6 @@ class MetaDeConv(MetaModule):
 		x = self.metaconv1(self.up(x), params=self.get_subdict(params, 'metaconv1'))
 		return x
 
-# siren network
 class MetaUNet(MetaModule):
 	def __init__(self, dim_hidden, layer_n=3, N_in=1, test=False):
 		super().__init__()
@@ -423,8 +420,7 @@ class MetaUNet(MetaModule):
 
 		return x
 
-
-# Meta_Material
+# MetaUnet Material
 
 class MaterialMetaDeConv(MetaModule):
 	def __init__(self,in_c, out_c):
@@ -635,82 +631,6 @@ class MyLoss(nn.Module):
 					sum_loss = self.criterion(in_image,gt_svbrdf)
 
 		return sum_loss, gt_svbrdf
-
-
-# con-siren network
-class OldConSirenNet(MetaModule):
-	def __init__(self, dim_in, dim_hidden, dim_out, num_layers, fea_c=32, w0 = 1., w0_initial = 30., use_bias = True, final_activation = None, cond_type='conv'):
-		super().__init__()
-		self.num_layers = num_layers
-		self.dim_hidden = dim_hidden
-		self.cond_type = cond_type
-		if self.cond_type=='conv':
-			self.con_layer = self._conv_layers(fea_c)
-		elif self.cond_type=='unet':
-			self.con_layer = MetaUNet(32)
-
-		self.layers = nn.ModuleList([])
-		for ind in range(num_layers):
-			is_first = ind == 0
-			layer_w0 = w0_initial if is_first else w0
-			layer_dim_in = dim_in+fea_c if is_first else dim_hidden
-
-			self.layers.append(Siren(
-				dim_in = layer_dim_in,
-				dim_out = dim_hidden,
-				w0 = layer_w0,
-				use_bias = use_bias,
-				is_first = is_first
-			))
-
-		self.final_activation = nn.Identity() if not exists(final_activation) else final_activation
-		self.last_layer = Siren(dim_in = dim_hidden, dim_out = dim_out, w0 = w0, use_bias = use_bias, activation = final_activation)
-
-	def _conv_layers(self, feature_c):
-		net = MetaSequential(
-			OldMetaConv(3, feature_c, ksize=3, s=1, p=1),
-			OldMetaConv(feature_c, feature_c, ksize=3, s=1, p=1),
-			OldMetaConv(feature_c, feature_c, ksize=3, s=1, p=1),
-			OldMetaConv(feature_c, feature_c, ksize=3, s=1, p=1, activation=nn.Tanh())
-			)
-		return net
-
-	def forward(self, x, mods = None, params = None):
-		coor = x[0]#.clone().detach().requires_grad_(True) # [H,W,2] allows to take derivative w.r.t. input
-		con_img = x[1]#.clone().detach().requires_grad_(True) # allows to take derivative w.r.t. input
-		
-		imgFea = self.con_layer(con_img, self.get_subdict(params, 'con_layer')).squeeze(0).permute(1,2,0) #[H,W,fea_c+2]
-		# print('concat shape', coor.shape)
-		# print('concat shape', imgFea.shape)
-		x = torch.cat([coor,imgFea],dim=-1)
-		# print('concat shape', x.shape)
-
-		mods = cast_tuple(mods, self.num_layers)
-
-		for i, (layer, mod) in enumerate(zip(self.layers, mods)):
-			# print('subdict:', self.get_subdict(params, 'layers.{}'.format(i)))
-			x = layer(x, params=self.get_subdict(params, 'layers.{}'.format(i)))
-
-			if exists(mod):
-				x *= rearrange(mod, 'd -> () d')
-
-		x = self.last_layer(x, params=self.get_subdict(params, 'last_layer'))
-		return x
-
-
-class OldMetaConv(MetaModule):
-	def __init__(self,in_c, out_c, ksize=4, s=2, p=1, activation=None):
-		super().__init__()
-		self.metaconv = MetaConv2d(in_c, out_c,  kernel_size=ksize, stride=s, padding=p)
-		self.activation = nn.LeakyReLU() if activation is None else activation
-
-	def forward(self,x, params=None):
-		# for p in self.get_subdict(params, 'metaconv'):
-		# 	print('metaconv ',p, self.get_subdict(params, 'metaconv')[p][0,0,0,0] if self.get_subdict(params, 'metaconv')[p].dim()==4 else self.get_subdict(params, 'metaconv')[p][0])
-		x = self.metaconv(x, params=self.get_subdict(params, 'metaconv'))
-		x = self.activation(x)
-
-		return x
 
 
 

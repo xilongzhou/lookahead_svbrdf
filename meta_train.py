@@ -228,11 +228,7 @@ def meta_learn(opt, model, coords, train_data, val_data, device, FeaExtractor=No
 					else:
 						g_tr = paramize_out(opt,g_tr)
 
-					if in_step==0:
-						tr_feas[str(in_step)] = g_tr
-					elif in_step==1:
-						tr_feas[str(in_step)] = g_tr
-					elif in_step==2:
+					if in_step==0 or in_step==1 or in_step==2:
 						tr_feas[str(in_step)] = g_tr
 
 					out_ren_tr = SingleRender_NumberPointLight_FixedCamera(2*g_tr[:,:,0:3]-1, g_tr[:,:,3:6], g_tr[:,:,6:7], g_tr[:,:,9:12], LightPos, Position_map, device, CamLi_co=True, lightinten=lightinten, no_spec=opt.no_spec) #[B,N, W,H,C]
@@ -267,12 +263,8 @@ def meta_learn(opt, model, coords, train_data, val_data, device, FeaExtractor=No
 					# 	downL2_loss = criterion(gt16, out16)*opt.WdownL2_inner
 					# 	inner_loss += downL2_loss
 
-					if in_step==0:
+					if in_step==0 or in_step==1 or in_step==2:
 						tr_rens[str(in_step)] = out_ren_tr
-					elif in_step==1:
-						tr_rens[str(in_step)]=out_ren_tr
-					elif in_step==2:
-						tr_rens[str(in_step)]=out_ren_tr
 
 
 					model.zero_grad()
@@ -811,200 +803,6 @@ def pretrain(opt, model, coords, train_data, val_data, device, FeaExtractor=None
 			step += 1
 
 
-def embed(opt, model, coords, device, FeaExtractor=None):
-
-	if opt.test_img=='OurReal':
-		# opt.realdata_path='../Dataset/MyRealData_All9Re_Total'
-		opt.realdata_path='../MG2/data/out_tmp/my_egsr1'
-		opt.light_path='../Dataset/Light/MyReal9_Total'
-	elif opt.test_img=='OurReal2':
-		opt.realdata_path='../MG2/data/mydata3'	
-	elif opt.test_img=='Real2':
-		opt.realdata_path='../Dataset/MGRealData_All9'
-		# opt.realdata_path='../MG2/data/out_tmp/egsr1'
-		opt.light_path='../Dataset/Light/MGReal9'
-
-	load_model='pretrain' if opt.load_pretrain else opt.model
-
-	if opt.test_img=='Real2':
-		scenes = []
-		with open(os.path.join(opt.realdata_path,'{}.txt'.format(opt.file)), 'r') as files:
-			lines = files.readlines() 
-			
-			for line in lines:
-				scenes.append(line.strip())
-	else:
-		scenes = os.listdir(opt.realdata_path)
-
-	txt_dir = f'{load_model}/{opt.resume_name}/test/{opt.name}'
-	if not os.path.exists(txt_dir):         
-		os.makedirs(txt_dir)
-
-	RenRMSE = open(os.path.join(txt_dir,'RenRMSE.txt'),'w')
-	RenLPIPS = open(os.path.join(txt_dir,'RenLPIPS.txt'),'w')
-
-	scene_N = 0
-	TotalRMSE_ren = 0
-	TotalLPIPS_ren = 0
-
-	print(len(scenes))
-
-	for scene in scenes:
-
-		scene_N += 1
-
-		print('....................now training scene %s .................'% scene )
-
-		# if scene != 'nima_wood_1':
-		# 	continue
-
-		img_dir = f'{load_model}/{opt.resume_name}/test/{opt.name}/{scene}'
-		if not os.path.exists(img_dir):         
-			os.makedirs(img_dir)
-
-		val_steps = opt.val_step #@param {type:"integer"}
-		first_order = opt.first_order #@param {type:"boolean"}
-
-		L1 = torch.nn.L1Loss()
-		mse = torch.nn.MSELoss().to(device)
-
-		criterionVGG = VGGLoss(opt)
-
-		weights = [0.1, 0.1, 0.1, 0.1]
-		keys = [1, 2, 3,4]
-		if opt.netloss=='Des19Net':
-			criterionNet = MyLoss(opt, keys, weights, device)
-
-		if opt.resume_name!='':	
-			if opt.model=='OutConSiren' and opt.load_pretrain:
-				load_network_pretrain(model, FeaExtractor, opt.load_iter,'%s/%s/models'%(load_model, opt.resume_name), cond_type=opt.cond_type, name='model')
-			else:
-				# if opt.load_old:
-				# 	load_network2(model, opt.load_iter,'%s/%s/models'%(load_model, opt.resume_name), name='model')
-				# else:
-				load_network(model, opt.load_iter,'%s/%s/models'%(load_model, opt.resume_name), name='model')
-				if opt.netloss=='Des19Net':
-					load_network(criterionNet.lossnet, opt.load_iter,'%s/%s/models'%(load_model, opt.resume_name), name='des19net')
-				if FeaExtractor is not None:
-					load_network(FeaExtractor, opt.load_iter,'%s/%s/models'%(load_model, opt.resume_name), name='FeaExtractor')
-
-
-		val_log_ren = OrderedDict()
-		val_log_fea = OrderedDict()
-		flag=False
-
-
-		val_rens = OrderedDict()
-		val_feas = OrderedDict()
-		val_rens_loss = OrderedDict()
-		val_feas_loss = OrderedDict()
-
-		model.eval()
-		g_test = None
-		out_val = None
-		valfea_loss = 0
-		valren_loss = 0
-
-		# url = 'https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada-pytorch/pretrained/metrics/vgg16.pt'
-		# with open_url(url) as f:
-		# 	vgg16 = torch.jit.load(f).eval().to(device)
-
-		#################################### load input images ##############################################
-		for i in range(9):
-			if opt.test_img=='Real2':
-				image_i = os.path.join(opt.realdata_path,'{}_{}.png'.format(scene, i)) 
-				image_i = Image.open(image_i).convert('RGB')				
-			else:
-				image_i = os.path.join(opt.realdata_path,scene,'0{}.{}'.format(i, opt.img_format)) 
-				image_i = Image.open(image_i).convert('RGB')
-				if not image_i.width == 256:
-					image_i = image_i.resize((256, 256), Image.LANCZOS)
-			image_i = transforms.ToTensor()(image_i).permute(1,2,0) 
-			if i==0:
-				val_example = image_i.unsqueeze(0)
-			else:
-				val_example = torch.cat((val_example,image_i.unsqueeze(0)),dim=0)
-
-		image_te = val_example[0:opt.N_input,...].to(device)
-		val_test = val_example[opt.N_input:,...].to(device)
-
-
-		#################################### load MG images for embedding ##############################################
-		if opt.test_img=='Real2':
-			fea_gt = os.path.join('/home/grads/z/zhouxilong199213/Projects/NERF/MG2/data/out/{}.png'.format(scene)) 
-			fea_gt = Image.open(fea_gt).convert('RGB')				
-		else:
-			fea_gt = os.path.join(opt.realdata_path,scene,'0{}.{}'.format(i, opt.img_format)) 
-			fea_gt = Image.open(fea_gt).convert('RGB')
-			# if not image_i.width == 256:
-			# 	image_i = image_i.resize((256, 256), Image.LANCZOS)
-
-		fea_gt = transforms.ToTensor()(fea_gt).permute(1,2,0) #[H,W,C] 
-		fea_gt = torch.cat([fea_gt[:,0:256,:], fea_gt[:,256:2*256,:], fea_gt[:,2*256:3*256,:], fea_gt[:,3*256:4*256,:]], dim=-1)
-
-		MG_loss = FeatureLoss('vgg_conv.pt', [0.125, 0.125, 0.125, 0.125])
-		for p in MG_loss.parameters():
-			p.requires_grad = False
-
-		params_test = OrderedDict(model.meta_named_parameters())
-		inner_lr = opt.inner_lr #@param
-
-		flag_lr = True
-		inner_loss = 0.0
-		TD_loss = 0.0
-		TD16Loss = 0.0
-
-		opt_outer = torch.optim.Adam(model.parameters(), lr=opt.after_innerlr, betas=[opt.beta1, opt.beta2])
-
-
-		for in_step in range(2000):
-
-			if opt.model=='UNet':
-				myinput = 2*image_te.permute(0,3,1,2)-1 # [-1,1] # [B,3,H,W]
-			elif opt.model=='InConSiren':
-				myinput = 2*image_te.permute(0,3,1,2)-1 # [B,3,H,W] [-1,1]
-				myinput = [coords[0],myinput] # coords:[H,W,2] myinput: [B,3,H,W]
-			elif opt.model=='OutConSiren':
-				myfea_in = FeaExtractor(2*image_te.permute(0,3,1,2)-1).squeeze(0).permute(1,2,0) #[B,3,H,W] --> [H,W,32]
-				myinput = torch.cat([coords[0], myfea_in],dim=-1)
-
-			g_te = model(myinput, params=params_test)
-
-			if opt.fea=='all_N1' or opt.fea=='D+R' or opt.fea=='all_N2' or opt.fea=='all_N3':
-				g_te = paramize_out(opt,g_te)
-			elif opt.fea=='N' or opt.fea=='N2' or opt.fea=='N3':
-				g_te = ProcessNormal(opt, g_te)
-			elif opt.fea=='D':
-				g_te = g_te
-			elif opt.fea=='R':
-				g_te = g_te.repeat(1,1,3)	
-
-			fea_loss = criterion(g_te[:,:,0:3], fea_gt[:,:,0:3])+ criterion(g_te[:,:,3:6], fea_gt[:,:,3:6])+ criterion(g_te[:,:,6:9], fea_gt[:,:,6:9])+ criterion(g_te[:,:,9:12], fea_gt[:,:,9:12])
-
-
-			# if opt.loss_after1 =='mse':
-			# 	temp_loss = ren_loss
-			# elif opt.loss_after1=='vgg':
-			# 	out_ren_tr_vg = VGGpreprocess(out_ren_te.permute(0,3,1,2))	
-			# 	gt_ren_tr_vg = VGGpreprocess(gt_ren_te.permute(0,3,1,2))
-			# 	temp_loss = criterionVGG(out_ren_tr_vg, gt_ren_tr_vg) * 0.005 + ren_loss
-			# elif opt.loss_after1=='MG':
-			# 	pixel_loss = mse(out_ren_te, gt_ren_te)          
-			# 	fea_loss = mse(MG_loss(normalize_vgg19(out_ren_te.permute(0,3,1,2).clone(), False)), gt_fea)*0.001          
-			# 	temp_loss = pixel_loss + fea_loss
-
-			# print('out_ren_te', out_ren_te.shape)
-
-			if in_step%100==0:
-				print(f'step: {in_step:d}, fea_loss: {fea_loss:.5f}')
-				# save_image(svbrdf_vis, os.path.join(img_dir,'fea.png'))
-				# save_image(svbrdf_vis0, os.path.join(img_dir,'fea0.png'))
-			
-			opt_outer.zero_grad()
-			fea_loss.backward()
-			opt_outer.step()
-
-
 def save_args(opt):
 	args = vars(opt)
 	save_opt_path = '%s/%s'%(opt.model, opt.name)
@@ -1200,5 +998,3 @@ if __name__ == "__main__":
 		meta_learn(opt, model, coords, Mytrain_data, Myval_data, device, FeaExtractNet)
 	elif opt.mode=='pretrain':
 		pretrain(opt, model, coords, Mytrain_data, Myval_data, device, FeaExtractNet)
-	elif opt.mode=='embed':
-		embed(opt, model, coords, device, FeaExtractNet)

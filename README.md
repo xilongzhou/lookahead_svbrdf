@@ -2,17 +2,21 @@
 
 This is code of "Look-Ahead Training with Learned Reflectance Loss for Single-Image SVBRDF Estimation" [Project](https://people.engr.tamu.edu/nimak/Papers/SIGAsia2022_LookAhead/index.html) | [Paper](https://people.engr.tamu.edu/nimak/Papers/SIGAsia2022_LookAhead/final_paper.pdf)
 
+<img src='img/teaser.jpg'>
+
+## Set up environment
+
 To set up environment, please run this command below (tesed in Linux environment):
 
 ```
 conda env create -f env.yml
 ```
-
+## Inference
 
 Before running inference, please download:
 
 1. our pretrained model from this [link](https://drive.google.com/file/d/1TvuTHtJQt8oTbLUiZ4_-mdORanDRlB-j/view?usp=share_link) 
-2. scaled real dataset with MaterialGAN and our dataset with ground truth [link](https://drive.google.com/file/d/1eggbsN5adCxBgiSzPyBXL0jBWv8aOEdR/view?usp=share_link)
+2. centeralized MaterialGAN and our dataset with ground truth [link](https://drive.google.com/file/d/1eggbsN5adCxBgiSzPyBXL0jBWv8aOEdR/view?usp=share_link)
 
 please save the download model to `./ckpt/` and extract data to `./dataset`:
 
@@ -25,7 +29,7 @@ python meta_test.py --fea all_N1 --wN_outer 80 --gamma --cuda --test_img $mode -
 
 where `$mode` set as `OurReal2` for our test dataset and `MGReal2` for MaterialGAN dataset, `$name` will be saved path
 
-To run inference on real captured dataset without ground truth, please use this command:
+To run inference on real captured dataset without ground truth, please first centeralized the specular highlight and then run this command:
 
 ```
 python meta_test.py --val_root $path ---fea all_N1 --wN_outer 80 --gamma --cuda --test_img Real --name $name --val_step 7 --wR_outer 5 --loss_after1 TD --Wfea_vgg 5e-2 --Wdren_outer 10 --WTDren_outer 10 --adjust_light
@@ -34,6 +38,28 @@ python meta_test.py --val_root $path ---fea all_N1 --wN_outer 80 --gamma --cuda 
 
 where `$path` point to the directory of test real images, `$name` is the saved path
 
+## Our Dataset
+
 We also provide higher resolution version of unscaled real scenes: [link](https://drive.google.com/file/d/1kzJicyd9Dn-cGNWJCDqJ4fuh5b_NDajW/view?usp=share_link)
+
+## Citation
+
+If you find this work useful for your research, please cite:
+
+```
+@article{zhou2022look,
+  title={Look-Ahead Training with Learned Reflectance Loss for Single-Image SVBRDF Estimation},
+  author={Zhou, Xilong and Kalantari, Nima Khademi},
+  journal={ACM Transactions on Graphics (TOG)},
+  volume={41},
+  number={6},
+  pages={1--12},
+  year={2022},
+  publisher={ACM New York, NY, USA}
+}
+
+```
+
+## Contact
 
 This code is not clean version, will clean it up soon. feel free to email me if you have any questions: 1992zhouxilong@gmail.com. Thanks for your understanding!

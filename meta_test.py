@@ -121,7 +121,7 @@ def test(opt, model, coords, val_data, device, FeaExtractor=None):
 	weights = [0.1, 0.1, 0.1, 0.1]
 	keys = [1, 2, 3,4]
 	if opt.netloss=='Des19Net':
-		criterionNet = MyLoss(opt, keys, weights, device)
+		criterionNet = MyLoss(opt, keys, weights, device, val=True)
 
 	log_step = []
 	val_log_ren = OrderedDict()
@@ -559,7 +559,7 @@ def output_ff(opt, model, coords, val_data, device, FeaExtractor=None):
 	weights = [0.1, 0.1, 0.1, 0.1]
 	keys = [1, 2, 3,4]
 	if opt.netloss=='Des19Net':
-		criterionNet = MyLoss(opt, keys, weights, device)
+		criterionNet = MyLoss(opt, keys, weights, device, val=True)
 
 	log_step = []
 	val_log_ren = OrderedDict()
@@ -978,7 +978,7 @@ def test_real(opt, model, coords, device, FeaExtractor=None):
 		weights = [0.1, 0.1, 0.1, 0.1]
 		keys = [1, 2, 3,4]
 		if opt.netloss=='Des19Net':
-			criterionNet = MyLoss(opt, keys, weights, device)
+			criterionNet = MyLoss(opt, keys, weights, device, val=True)
 
 		# load model
 		load_network(model, "final", 'ckpt/', name='model')

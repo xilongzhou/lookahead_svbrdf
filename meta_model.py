@@ -544,7 +544,7 @@ def paramize_out_des19(vec):
 
 
 class MyLoss(nn.Module):
-	def __init__(self, opt, keys, weights, device):
+	def __init__(self, opt, keys, weights, device, val=False):
 		super().__init__()
 		self.opt = opt
 		self.keys = keys
@@ -555,7 +555,8 @@ class MyLoss(nn.Module):
 			self.use_svbrdf = True
 			self.PositionMap_Des19 = PositionMap_Des19(256, 256).cuda().unsqueeze(0).repeat(1,1,1,1).permute(0,3,1,2)
 
-			self.LoadDes19Net(self.lossnet,np.load(opt.Des19Net_npy_path,allow_pickle=True).item())
+			if not val:
+				self.LoadDes19Net(self.lossnet,np.load(opt.Des19Net_npy_path,allow_pickle=True).item())
 
 		else:
 			self.lossnet = LossNet().to(device)

@@ -22,7 +22,9 @@ please save the download model to `./ckpt/` and extract data to `./dataset`:
 
 
 
-### To run inference on our and MaterialGAN's dataset with ground truth, please use this command:
+### Inference on our and MaterialGAN's dataset with ground truth
+
+Please use this command:
 
 ```
 python meta_test.py --fea all_N1 --wN_outer 80 --gamma --cuda --test_img $mode --name $name --val_step 7 --wR_outer 5 --loss_after1 TD --Wfea_vgg 5e-2 --Wdren_outer 10 --WTDren_outer 10 --adjust_light
@@ -35,7 +37,9 @@ Here are some clarifications of saved images for each scene: `fea`: final SVBRDF
 
 
 
-To run inference on real captured dataset without ground truth, please first centeralized the specular highlight of input image and then run this command:
+### Inference on real captured dataset without ground truth
+
+Please first centeralized the specular highlight of input image and then run this command:
 
 ```
 python meta_test.py --val_root $path --fea all_N1 --wN_outer 80 --gamma --cuda --test_img Real --name $name --val_step 7 --wR_outer 5 --loss_after1 TD --Wfea_vgg 5e-2 --Wdren_outer 10 --WTDren_outer 10 --adjust_light

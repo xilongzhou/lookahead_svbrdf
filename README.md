@@ -50,7 +50,7 @@ where `$path` point to the directory of test real images, `$name` represents the
 
 ## Our Dataset
 
-We also provide higher resolution version of unscaled real scenes: [link](https://drive.google.com/file/d/1kzJicyd9Dn-cGNWJCDqJ4fuh5b_NDajW/view?usp=share_link).
+We also provide higher resolution version of our uncenteralized real scenes: [link](https://drive.google.com/file/d/1kzJicyd9Dn-cGNWJCDqJ4fuh5b_NDajW/view?usp=share_link).
 
 ## Citation
 

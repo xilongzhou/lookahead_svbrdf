@@ -22,14 +22,16 @@ please save the download model to `./ckpt/` and extract data to `./dataset`:
 
 
 
-To run inference on our and MaterialGAN's dataset with ground truth, please use this command:
+# To run inference on our and MaterialGAN's dataset with ground truth, please use this command:
 
 ```
 python meta_test.py --fea all_N1 --wN_outer 80 --gamma --cuda --test_img $mode --name $name --val_step 7 --wR_outer 5 --loss_after1 TD --Wfea_vgg 5e-2 --Wdren_outer 10 --WTDren_outer 10 --adjust_light
 
 ```
 
-where `$mode` set as `OurReal2` for our test dataset and `MGReal2` for MaterialGAN dataset, `$name` represents the saved path. Inside the saved path, `RenLPIPS` and `RenRMSE` are the lpips and rmse value. Below are some clarifications of saved images for each scene: `fea`: final SVBRDF, `fea0`: SVBRDF at step 0, `render_#`: rendered image under 8 test lightings, `render_o0`: rendered image under input lightings, `render_t0`: the input image, `progressive_img`: optimization process at step 0,1,2,5,7 (row 1-5)
+where `$mode` set as `OurReal2` for our test dataset and `MGReal2` for MaterialGAN dataset, `$name` represents the saved path. Inside the saved path, `RenLPIPS` and `RenRMSE` are the lpips and rmse value. 
+
+Here are some clarifications of saved images for each scene: `fea`: final SVBRDF, `fea0`: SVBRDF at step 0, `render_#`: rendered image under 8 test lightings, `render_o0`: rendered image under input lightings, `render_t0`: the input image, `progressive_img`: optimization process at step 0,1,2,5,7 (row 1-5)
 
 
 

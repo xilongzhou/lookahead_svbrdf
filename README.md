@@ -27,7 +27,9 @@ python meta_test.py --fea all_N1 --wN_outer 80 --gamma --cuda --test_img $mode -
 
 ```
 
-where `$mode` set as `OurReal2` for our test dataset and `MGReal2` for MaterialGAN dataset, `$name` represents the saved path
+where `$mode` set as `OurReal2` for our test dataset and `MGReal2` for MaterialGAN dataset, `$name` represents the saved path. Inside the saved path, `RenLPIPS` and `RenRMSE` are the lpips and rmse value. Below are some clarifications of saved images for each scene:
+
+`fea`: final SVBRDF, `fea0`: SVBRDF at step 0, `render_#`: rendered image under 8 test lightings, `render_o0`: rendered image under input lightings, `render_t0`: the input image, `progressive_img`: optimization process at step 0,1,2,5,7 (row 1-5)
 
 To run inference on real captured dataset without ground truth, please first centeralized the specular highlight of input image and then run this command:
 
@@ -36,7 +38,7 @@ python meta_test.py --val_root $path --fea all_N1 --wN_outer 80 --gamma --cuda -
 
 ```
 
-where `$path` point to the directory of test real images, `$name` represents the saved path. The final feature maps are saved to `$name\fea` and optimization process at step 0,1,2,5,7 are saved to `$name\pro`
+where `$path` point to the directory of test real images, `$name` represents the saved path. Inside the saved path, the final feature maps are saved to `$name\fea` and optimization process at step 0,1,2,5,7 are saved to `$name\pro`
 
 ## Our Dataset
 

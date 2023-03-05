@@ -22,7 +22,7 @@ please save the download model to `./ckpt/` and extract data to `./dataset`:
 
 
 
-### Inference on our and MaterialGAN's dataset with ground truth
+### Inference on MaterialGAN's and our dataset with ground truth
 
 Please use this command:
 

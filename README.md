@@ -22,7 +22,7 @@ please save the download model to `./ckpt/` and extract data to `./dataset`:
 
 
 
-# To run inference on our and MaterialGAN's dataset with ground truth, please use this command:
+### To run inference on our and MaterialGAN's dataset with ground truth, please use this command:
 
 ```
 python meta_test.py --fea all_N1 --wN_outer 80 --gamma --cuda --test_img $mode --name $name --val_step 7 --wR_outer 5 --loss_after1 TD --Wfea_vgg 5e-2 --Wdren_outer 10 --WTDren_outer 10 --adjust_light

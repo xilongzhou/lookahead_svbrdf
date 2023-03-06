@@ -197,9 +197,8 @@ def test(opt, model, coords, val_data, device, FeaExtractor=None):
 
 	for img_id, val_example in enumerate(val_data):
 
-
 		val_example, name=val_example
-	
+		print(name)
 		val_img = val_example.to(device)
 		image_gt = val_img[0].permute(1,2,0) # [256, 256, C]
 

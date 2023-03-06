@@ -137,10 +137,11 @@ class DataLoaderHelper_test(data.Dataset):
 	def __getitem__(self, index):
 		#load the image
 		fullimage = Image.open(os.path.join(self.path,self.image_filenames[index])).convert('RGB') 
-		# fullimage = mpimg.imread(join(self.path,self.image_filenames[index]))
 		name = self.image_filenames[index].split('.')[0]
-
 		w, h = fullimage.size 
+
+		if fullimage.size[1]!=256:
+			fullimage = fullimage.resize((256,256))
 
 		if w==5*h:
 			# print('5555555555555555')
